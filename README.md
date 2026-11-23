@@ -77,5 +77,20 @@ npm run dev
 - 列表接口统一返回 `{ items, total, page, size }`，动作接口统一返回 `{ ok, message }`。
 - 状态流转只允许在 `app/services` 里改，路由层不做业务判断。
 
+### 实体复核候选集
+
+实体识别在通用资源接口之外，另提供按类别置信度阈值判定的复核候选集
+（前端入口：导航「实体复核候选集」，路由 `/entity_recognize/review-candidates`）：
+
+- `POST /api/entity_recognize/review-candidates/build`：按类别阈值从命名实体数据
+  构建候选集，记录每个样本适用的阈值规则与真实分块出处（章节、分块编号、片段、偏移）；
+  每次构建生成不可变 run 快照，改阈值后可通过 `run_id` 对比历史数据与旧结论。
+- 同一实体名在标题、正文等多个分块出现时分别保留出处；出处分列阈值两侧的样本标记
+  `cross_threshold`，不可单独结案，复核结论必须覆盖全部证据。
+- `POST /api/annot_review/candidate-dispatch`：用候选集创建人工复核待办，返回中保留
+  每个样本采用的规则与被选中的来源；证据指纹+规则键保证同一证据同一规则重跑不重复派单。
+- `GET /api/annot_review/closed-reviews`：已结案结果不可变，可按候选、run、分块出处
+  三种原依据查询历史结论。
+
 领域：数据工程
 子方向：数据采集、爬虫与RPA
